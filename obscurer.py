@@ -9,20 +9,19 @@ import time
 from optparse import OptionParser
 import sys
 import pexpect
+import os
 
 def rand_hex():
     return '{0}{1}'.format(random.choice('0123456789ABCDEF'), random.choice('0123456789ABCDEF'))
 
-
 def random_int(len):
     return random.randint()
-
 
 usernames = ['admin', 'support', 'guest', 'user', 'service', 'tech', 'administrator']
 passwords = ['system', 'enable', 'password', 'shell', 'root', 'support']
 services = ['syslog', 'mongodb', 'statd', 'pulse']
 os = ['Ubuntu 14.04.5 LTS', 'Ubuntu 16.04 LTS', 'Debian GNU/Linux 6']
-hostnames = ['web', 'db', 'nas']
+hostnames = ['web', 'db', 'nas', 'dev', 'backups', 'dmz']
 hostname = random.choice(hostnames)
 nix_versions = {
     'Linux version 2.6.32-042stab116.2 (root@kbuild-rh6-x64.eng.sw.ru) (gcc version 4.4.6 20120305 (Red Hat 4.4.6-4) (GCC) ) #1 SMP Fri Jun 24 15:33:57 MSK 2016':
@@ -42,6 +41,7 @@ nix_versions = {
     'Linux version 3.13.0-108-generic (buildd@lgw01-60) (gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #155-Ubuntu SMP Wed Jan 11 16:58:52 UTC 2017':
         'Linux {0} 3.13.0-108-generic #155-Ubuntu SMP Wed Jan 11 16:58:52 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux'.format(
             hostname)}
+version, uname = random.choice(list(nix_versions.items()))
 processors = ['Intel(R) Core(TM) i7-2960XM CPU @ 2.70GHz', 'Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz',
               'Intel(R) Core(TM) i3-4005U CPU @ 1.70GHz']
 cpu_flags = ['rdtscp', 'arch_perfmon', 'nopl', 'xtopology', 'nonstop_tsc', 'aperfmperf', 'eagerfpu', 'pclmulqdq',
@@ -83,6 +83,7 @@ ssh_ver = ['SSH-2.0-OpenSSH_5.1p1 Debian-5', 'SSH-1.99-OpenSSH_4.3', 'SSH-1.99-O
            'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6', 'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu7',
            'SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2', 'SSH-2.0-OpenSSH_5.9p1 Debian-5ubuntu1',
            ' SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1']
+sshversion = random.choice(ssh_ver)
 user_count = random.randint(1, 3)
 users = []
 password = []
@@ -160,7 +161,6 @@ def base_py(cowrie_install_dir):
         base_file.write(base_update)
         base_file.truncate()
         base_file.close()
-        print "base.py file changed!\n"
 
 
 def free_py(cowrie_install_dir):
@@ -197,7 +197,6 @@ def free_py(cowrie_install_dir):
         free_file.write(free_update)
         free_file.truncate()
         free_file.close()
-        print "free.py file changed!\n"
 
 
 def ifconfig_py(cowrie_install_dir):
@@ -220,7 +219,6 @@ def ifconfig_py(cowrie_install_dir):
         ifconfig_file.write(ifconfig_update)
         ifconfig_file.truncate()
         ifconfig_file.close()
-        print "ifconfig file changed!\n"
 
 
 def arp_py(cowrie_install_dir):
@@ -238,20 +236,19 @@ def arp_py(cowrie_install_dir):
         arp_file.write(arp_update.strip("\n"))
         arp_file.truncate()
         arp_file.close()
-        print "Arp file changed!\n"
 
 
 def version_uname(cowrie_install_dir):
-    version, uname = random.choice(list(nix_versions.items()))
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/proc/version"), "w")  as version_file:
         version_file.write(version)
         version_file.close()
     with open("{0}{1}".format(cowrie_install_dir, "/cowrie/commands/uname.py"), "r+")  as uname_file:
         uname_py = uname_file.read()
         uname_file.seek(0)
+        test = ""
         refunc = "(?<=version ).*?(?= \()"
         uname_kernel = re.findall(refunc, version)
-        replacements = {"Linux %s 3.2.0-4-amd64 #1 SMP Debian 3.2.68-1+deb7u1 x86_64 GNU/Linux": version,
+        replacements = {"3.2.0-4-amd64 #1 SMP Debian 3.2.68-1+deb7u1 x86_64 GNU/Linux": version[14:],
                         "3.2.0-4-amd64": '{0}'.format(uname_kernel[0]), 'amd64': 'x86_64'}
         substrs = sorted(replacements, key=len, reverse=True)
         regexp = re.compile('|'.join(map(re.escape, substrs)))
@@ -259,7 +256,6 @@ def version_uname(cowrie_install_dir):
         uname_file.write(uname_update.strip("\n"))
         uname_file.truncate()
         uname_file.close()
-    print "Version & Uname file changed!\n"
 
 
 def meminfo_py(cowrie_install_dir):
@@ -301,7 +297,6 @@ def meminfo_py(cowrie_install_dir):
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/proc/meminfo"), "w")  as new_meminfo:
         new_meminfo.write(meminfo)
         new_meminfo.close()
-        print "Meminfo Info file changed!\n"
 
 
 def mounts(cowrie_install_dir):
@@ -322,7 +317,6 @@ def mounts(cowrie_install_dir):
         mounts_file.write(mounts_update.strip("\n"))
         mounts_file.truncate()
         mounts_file.close()
-        print "Mounts Info file changed!\n"
 
 
 def cpuinfo(cowrie_install_dir):
@@ -344,7 +338,6 @@ def cpuinfo(cowrie_install_dir):
         cpuinfo_file.write(cpuinfo_update)
         cpuinfo_file.truncate()
         cpuinfo_file.close()
-        print "CPU Info file changed!\n"
 
 
 def group(cowrie_install_dir):
@@ -353,6 +346,7 @@ def group(cowrie_install_dir):
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/group"), "r+") as group_file:
         group = group_file.read()
         group_file.seek(0)
+        group_update = ""
         while y < len(users):
             if y == 0:
                 new_user = "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(users[y], str(num), str(num), users[y],
@@ -371,47 +365,47 @@ def group(cowrie_install_dir):
         group_file.write(group_update)
         group_file.truncate()
         group_file.close()
-        print "Group file changed!\n"
 
 
 def passwd(cowrie_install_dir):
-    y = 0
+    y = 1
     num = 1000
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/passwd"), "r+") as passwd_file:
         passwd = passwd_file.read()
         passwd_file.seek(0)
-        while y < len(users):
+        passwd_update = ""
+        while y <= len(users):
             if y == 1:
-                new_user = "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(users[y], str(num), str(num), users[y],
-                                                                             users[y])
+                new_user = "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(users[y-1], str(num), str(num), users[y-1],
+                                                                             users[y-1])
                 replacements = {"richard:x:1000:1000:Richard Texas,,,:/home/richard:/bin/bash": new_user}
                 substrs = sorted(replacements, key=len, reverse=True)
                 regexp = re.compile('|'.join(map(re.escape, substrs)))
                 passwd_update = regexp.sub(lambda match: replacements[match.group(0)], passwd)
             elif y > 1:
-                passwd_update += "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(users[y], str(num), str(num),
-                                                                                   users[y], users[y])
+                passwd_update += "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash\n".format(users[y-1], str(num), str(num), users[y-1], users[y-1])
+                #pass
             y = y + 1
             num = num + 1
         passwd_file.write(passwd_update)
         passwd_file.truncate()
         passwd_file.close()
-        print "Passwd file changed!\n"
 
 
 def shadow(cowrie_install_dir):
-    x = 0
+    x = 1
     shadow_update = ""
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/shadow"), "r+") as shadow_file:
         shadow = shadow_file.read()
         shadow_file.seek(0)
+        shadow_update = ""
         days_since = random.randint(16000, 17200)
         salt = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
-        while x < len(users):
-            if x <= 1:
-                gen_pass = crypt.crypt(password[x], "$6$" + salt)
+        while x <= len(users):
+            if x == 1:
+                gen_pass = crypt.crypt(password[x-1], "$6$" + salt)
                 salt = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
-                new_user = "{0}:{1}:{2}:0:99999:7:::".format(users[x], gen_pass, random.randint(16000, 17200))
+                new_user = "{0}:{1}:{2}:0:99999:7:::".format(users[x-1], gen_pass, random.randint(16000, 17200))
                 new_root_pass = crypt.crypt("password", "$6$" + salt)
                 replacements = {"15800": str(days_since),
                                 "richard:$6$ErqInBoz$FibX212AFnHMvyZdWW87bq5Cm3214CoffqFuUyzz.ZKmZ725zKqSPRRlQ1fGGP02V/WawQWQrDda6YiKERNR61:15800:0:99999:7:::\n": new_user,
@@ -420,29 +414,28 @@ def shadow(cowrie_install_dir):
                 regexp = re.compile('|'.join(map(re.escape, substrs)))
                 shadow_update = regexp.sub(lambda match: replacements[match.group(0)], shadow)
             elif x > 1:
-                gen_pass = crypt.crypt(password[x], "$6$" + salt)
-                shadow_update += "\n{0}:{1}:{2}:0:99999:7:::".format(users[x], gen_pass, random.randint(16000, 17200))
+                gen_pass = crypt.crypt(password[x-1], "$6$" + salt)
+                shadow_update += "\n{0}:{1}:{2}:0:99999:7:::".format(users[x-1], gen_pass, random.randint(16000, 17200))
             x = x + 1
         shadow_file.write(shadow_update)
         shadow_file.truncate()
         shadow_file.close()
-        print "Shadow file changed!\n"
 
 
 def cowrie_cfg(cowrie_install_dir):
-    with open("{0}{1}".format(cowrie_install_dir, "/cowrie.cfg"), "r+") as cowrie_cfg:
-        cowrie_config = cowrie_cfg.read()
-        cowrie_cfg.seek(0)
-        replacements = {"svr04": hostname, "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
-                        "ssh_version_string = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "ssh_version_string = {0}".format(
-                            random.choice(ssh_ver))}
-        substrs = sorted(replacements, key=len, reverse=True)
-        regexp = re.compile('|'.join(map(re.escape, substrs)))
-        config_update = regexp.sub(lambda match: replacements[match.group(0)], cowrie_config)
-        cowrie_cfg.write(config_update)
-        cowrie_cfg.truncate()
-        cowrie_cfg.close()
-        print "Hostname config changed!\n"
+	with open("{0}{1}".format(cowrie_install_dir, "/cowrie.cfg.dist"), "r+") as cowrie_cfg:
+		cowrie_config = cowrie_cfg.read()
+		cowrie_cfg.seek(0)
+		replacements = {"svr04": hostname, "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
+		"ssh_version_string = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "ssh_version_string = {0}".format(sshversion)}
+		substrs = sorted(replacements, key=len, reverse=True)
+		regexp = re.compile('|'.join(map(re.escape, substrs)))
+		config_update = regexp.sub(lambda match: replacements[match.group(0)], cowrie_config)
+		cowrie_cfg.close()
+		with open("{0}{1}".format(cowrie_install_dir, "/cowrie.cfg"), "w+") as cowrie_cfg_update:
+			cowrie_cfg_update.write(config_update)
+			cowrie_cfg_update.truncate()
+			cowrie_cfg_update.close()
 
 
 def hosts(cowrie_install_dir):
@@ -452,7 +445,6 @@ def hosts(cowrie_install_dir):
         host_file.write(hosts.replace("nas3", hostname))
         host_file.truncate()
         host_file.close()
-        print "Hosts file changed!\n"
 
 
 def hostname_py(cowrie_install_dir):
@@ -462,7 +454,6 @@ def hostname_py(cowrie_install_dir):
         hostname_file.write(hostname_contents.replace("svr04", hostname))
         hostname_file.truncate()
         hostname_file.close()
-        print "Hostname file changed!\n"
 
 
 def issue(cowrie_install_dir):
@@ -472,7 +463,6 @@ def issue(cowrie_install_dir):
         issue_file.write(issue.replace("Debian GNU/Linux 7", random.choice(os)))
         issue_file.truncate()
         issue_file.close()
-        print "Issue file changed!\n"
 
 
 def userdb(cowrie_install_dir):
@@ -488,7 +478,6 @@ def userdb(cowrie_install_dir):
             userdb_file.write("\n{0}:x:*".format(user))
         userdb_file.truncate()
         userdb_file.close()
-        print "UserDB file changed!\n"
 
 
 def fs_pickle(cowrie_install_dir):
@@ -527,16 +516,48 @@ def allthethings(cowrie_install_dir):
         print "\nError: {0}\nCheck file path and try again.".format(e)
         pass
 
+header = """\
+       _
+      | |
+  ___ | |__  ___  ___ _   _ _ __ ___ _ __
+ / _ \| '_ \/ __|/ __| | | | '__/ _ \ '__|
+| (_) | |_) \__ \ (__| |_| | | |  __/ |
+ \___/|_.__/|___/\___|\__,_|_|  \___|_|
+
+  https://github.com/James-Hall/obscurer
+
+        Cowrie Honeypot Obscurer
+
+"""
+
+output = """\
+
+Cowrie Configuration Updated
+----------------------------
+
+Accepted Username(s): {1}
+Accepted Password(s): {1}
+
+Hostname: {2}
+Operating System: {3}
+SSH Version: {4}
+Internal IP: {5}
+
+""".format(users, password, hostname, version, sshversion, ip_address)
+
 if __name__ == "__main__":
-    parser = OptionParser(usage='usage: %prog cowrie/install/dir [options]')
+    parser = OptionParser(usage='usage: python %prog cowrie/install/dir [options]')
     parser.add_option("-a", "--allthethings", action='store_true', default='False', help="Change all the things")
     (options, args) = parser.parse_args()
 
     if len(args) < 1:
-        print "[!] Not enough Arguments, Need at least file path"
-        parser.print_help()
-        sys.exit()
+		print header
+		print "[!] Not enough Arguments, Need at least file path"
+		parser.print_help()
+		sys.exit()
 
     elif options.allthethings is True:
-        allthethings(args[0])
-        sys.exit()
+		print header
+		allthethings(args[0])
+		print output
+		sys.exit()
