@@ -427,7 +427,8 @@ def cowrie_cfg(cowrie_install_dir):
 		cowrie_config = cowrie_cfg.read()
 		cowrie_cfg.seek(0)
 		replacements = {"svr04": hostname, "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
-		"ssh_version_string = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "ssh_version_string = {0}".format(sshversion)}
+		"ssh_version_string = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "ssh_version_string = {0}".format(sshversion), "#listen_port = 2222": "listen_port = 22",
+		"tcp:2222": "tcp:22"}
 		substrs = sorted(replacements, key=len, reverse=True)
 		regexp = re.compile('|'.join(map(re.escape, substrs)))
 		config_update = regexp.sub(lambda match: replacements[match.group(0)], cowrie_config)
@@ -535,15 +536,16 @@ output = """\
 Cowrie Configuration Updated
 ----------------------------
 
-Accepted Username(s): {1}
+Accepted Username(s): {0}
 Accepted Password(s): {1}
 
 Hostname: {2}
 Operating System: {3}
 SSH Version: {4}
-Internal IP: {5}
+SSH Listen Port: {5}
+Internal IP: {6}
 
-""".format(users, password, hostname, version, sshversion, ip_address)
+""".format(users, password, hostname, version, sshversion, "22", ip_address)
 
 if __name__ == "__main__":
     parser = OptionParser(usage='usage: python %prog cowrie/install/dir [options]')
