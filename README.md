@@ -10,9 +10,9 @@ Be aware this will wipe out any custome configuration you have made to the cowri
 
 ## Requirements 
 
-Fresh Cowrie Install
-python 2.7
-pip install pexpect
+* Fresh Cowrie install
+* python 2.7
+* pip install pexpect
 
 ## Usage
 
